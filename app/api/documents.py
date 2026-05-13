@@ -31,4 +31,3 @@ def download_document(id):
     else:
         return jsonify({'error': 'File not found'}), 404
 
-# Админские эндпоинты для загрузки (перенесём в admin.py)

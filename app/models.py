@@ -100,7 +100,7 @@ class MasterClassProgress(db.Model):
     score_percent = db.Column(db.Float)          # набранный процент
     is_passed = db.Column(db.Boolean, default=False)
     certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id'), nullable=True)
-    # JSON поле с ответами на тесты для детализации
+    
     answers = db.Column(db.JSON)  # {test_id: selected_option_index}
     masterclass = db.relationship('MasterClass', backref='progresses')
 

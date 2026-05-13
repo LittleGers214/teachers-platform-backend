@@ -27,7 +27,7 @@ def list_webinars():
 @jwt_required()
 def mark_webinar_viewed(id):
     user_id = int(get_jwt_identity())
-    # Проверяем, не смотрел ли уже
+    
     existing = WebinarView.query.filter_by(user_id=user_id, webinar_id=id).first()
     if not existing:
         view = WebinarView(user_id=user_id, webinar_id=id)

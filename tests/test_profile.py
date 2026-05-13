@@ -3,8 +3,7 @@ def test_get_certificates_empty(client, user_token):
     assert resp.json == []
 
 def test_get_progress(client, user_token, masterclass):
-    # после успешного прохождения мастер-класса прогресс должен отразиться
-    # сначала стартуем и проходим
+    
     client.post(f'/api/masterclasses/{masterclass.id}/start',
                 headers={'Authorization': f'Bearer {user_token}'})
     answers = {

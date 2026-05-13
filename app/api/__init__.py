@@ -12,10 +12,10 @@ def create_app(config_class=Config):
     jwt.init_app(app)
     ma.init_app(app)
 
-    # Импорт моделей (чтобы Alembic их видел)
+    
     from app import models
 
-    # Регистрация blueprints (API)
+    
     from app.auth import auth_bp
     from app.api.documents import documents_bp
     from app.api.appeals import appeals_bp

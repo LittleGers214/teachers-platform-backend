@@ -1,1 +1,143 @@
-Single-database configuration for Flask.
+English
+Teachers' Digital Competencies Platform – Backend
+Backend for the educational platform aimed at developing digital competencies of teachers, conducting webinars/masterclasses, hosting regulatory documents, surveys, and issuing certificates.
+
+Features
+User authentication & roles (guest, registered user, admin)
+
+Normative documents library (PDF, DOCX, links) with search & filters
+
+Webinars & masterclasses with tests, progress tracking, and automatic PDF certificates
+
+Surveys (anonymous/required) with admin analytics
+
+Appeal/consultation requests with status management
+
+Admin panel for content management and user analytics
+
+Certificate generation (PDF, Cyrillic support)
+
+Tech Stack
+Python 3.10+
+
+Flask + Flask-RESTful
+
+SQLAlchemy (PostgreSQL / SQLite)
+
+Flask-Migrate (Alembic)
+
+Flask-JWT-Extended
+
+ReportLab (PDF generation)
+
+Pytest for testing
+
+Installation & Setup
+Clone the repository:
+
+bash
+git clone https://github.com/LittleGers214/teachers-platform-backend.git
+cd teachers-platform-backend
+Create virtual environment and activate:
+python -m venv venv
+source venv/bin/activate      # Linux/macOS
+venv\Scripts\activate         # Windows
+Install dependencies:
+pip install -r requirements.txt
+
+Configure environment variables (create .env file):
+DATABASE_URL=postgresql://user:pass@localhost/dbname
+SECRET_KEY=your-secret-key
+JWT_SECRET_KEY=your-jwt-secret
+
+Run database migrations:
+flask db upgrade
+
+Start the development server:
+flask run
+
+Running Tests
+pytest -v
+
+API Overview
+All endpoints are prefixed with /api. See flask routes for full list.
+Auth: /register, /login, /profile
+Documents: /documents (GET), /documents/<id>/download
+Appeals: /appeals (POST, GET)
+Webinars: /webinars (GET), /webinars/<id>/view (POST)
+Masterclasses: /masterclasses (GET), /masterclasses/<id>/start, /submit
+Surveys: /surveys (GET), /surveys/<id>/submit
+Profile: /profile/certificates, /profile/progress
+Admin: /admin/documents (POST), /admin/masterclasses (POST)
+License
+MIT
+___________________________________________________________________________________________________________________________________________________________
+Платформа развития цифровых компетенций педагогов – Бэкенд
+Серверная часть образовательной платформы для развития цифровых компетенций педагогов: вебинары, мастер-классы, нормативные документы, анкетирование, выдача сертификатов.
+
+Возможности
+Аутентификация и роли (гость, пользователь, администратор)
+
+Раздел нормативно-правовых актов (PDF, DOCX, ссылки) с поиском и фильтрацией
+
+Вебинары и мастер-классы с тестами, отслеживанием прогресса и автоматической выдачей PDF-сертификатов
+
+Анкетирование (обязательное/необязательное) с аналитикой для администратора
+
+Запросы на консультации и обратная связь со сменой статусов
+
+Админ-панель: управление контентом и пользователями, просмотр статистики
+
+Генерация сертификатов (PDF, поддержка кириллицы)
+
+Технологии
+Python 3.10+
+Flask + Flask-RESTful
+SQLAlchemy (PostgreSQL / SQLite)
+Flask-Migrate (Alembic)
+Flask-JWT-Extended
+ReportLab (генерация PDF)
+Pytest (тестирование)
+Установка и запуск
+Клонируйте репозиторий:
+git clone https://github.com/LittleGers214/teachers-platform-backend.git
+cd teachers-platform-backend
+Создайте и активируйте виртуальное окружение:
+python -m venv venv
+source venv/bin/activate      # Linux/macOS
+venv\Scripts\activate         # Windows
+Установите зависимости:
+pip install -r requirements.txt
+Настройте переменные окружения (файл .env):
+DATABASE_URL=postgresql://пользователь:пароль@localhost/имя_бд
+SECRET_KEY=ваш-секретный-ключ
+JWT_SECRET_KEY=ваш-jwt-секрет
+Выполните миграции базы данных:
+flask db upgrade
+Запустите сервер разработки:
+flask run
+Запуск тестов
+pytest -v
+Обзор API
+Все эндпоинты имеют префикс /api. Полный список можно увидеть командой flask routes.
+
+Аутентификация: /register, /login, /profile
+
+НПА: /documents (GET), /documents/<id>/download
+
+Консультации: /appeals (POST, GET)
+
+Вебинары: /webinars (GET), /webinars/<id>/view (POST)
+
+Мастер-классы: /masterclasses (GET), /masterclasses/<id>/start, /submit
+
+Анкеты: /surveys (GET), /surveys/<id>/submit
+
+Личный кабинет: /profile/certificates, /profile/progress
+
+Администрирование: /admin/documents (POST), /admin/masterclasses (POST)
+
+Лицензия
+MIT
+___________________________________________________________________________________________________________________________________________________________
+Created by – LittleGers214
