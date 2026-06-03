@@ -13,6 +13,8 @@ from app.api.admin import admin_bp
 from flask_cors import CORS
 from flask import send_from_directory
 import os
+from app.extensions import mail
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -47,5 +49,6 @@ def create_app(config_class=Config):
     def serve_uploaded_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    mail.init_app(app)
 
     return app

@@ -23,6 +23,8 @@ class User(db.Model):
     masterclass_progress = db.relationship('MasterClassProgress', backref='user', lazy=True)
     survey_responses = db.relationship('SurveyResponse', backref='user', lazy=True)
     webinar_views = db.relationship('WebinarView', backref='user', lazy=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
 
 class Document(db.Model):
     __tablename__ = 'documents'

@@ -14,3 +14,9 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key'
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+    MAIL_SERVER = 'smtp.yandex.ru'   # или ваш SMTP
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = 'your-email@yandex.ru'
+    MAIL_PASSWORD = 'your-password'
+    MAIL_DEFAULT_SENDER = ('Platform', 'your-email@yandex.ru')
