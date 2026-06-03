@@ -18,7 +18,7 @@ def list_masterclasses():
         'passing_score': m.passing_score
     } for m in mc])
 
-@masterclasses_bp.route('/masterclasses/<int:id>/start', methods=['POST'])
+@masterclasses_bp.route('/masterclasses/<int:id>/start', methods=['POST', 'GET'])
 @jwt_required()
 def start_masterclass(id):
     user_id = int(get_jwt_identity())

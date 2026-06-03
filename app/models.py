@@ -18,7 +18,7 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # Связи
-    certificates = db.relationship('Certificate', backref='user', lazy=True)
+    certificates = db.relationship('Certificate', back_populates='user')
     appeal_messages = db.relationship('Appeal', backref='user', lazy=True)
     masterclass_progress = db.relationship('MasterClassProgress', backref='user', lazy=True)
     survey_responses = db.relationship('SurveyResponse', backref='user', lazy=True)
@@ -112,7 +112,9 @@ class Certificate(db.Model):
     unique_number = db.Column(db.String(50), unique=True, nullable=False)
     issue_date = db.Column(db.DateTime, default=datetime.utcnow)
     pdf_path = db.Column(db.String(300), nullable=False)  # путь к сгенерированному PDF
-
+     # Исправленное отношение:
+    user = db.relationship('User', back_populates='certificates')
+    masterclass = db.relationship('MasterClass', backref='certificates')
 class Survey(db.Model):
     __tablename__ = 'surveys'
     id = db.Column(db.Integer, primary_key=True)

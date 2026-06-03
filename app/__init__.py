@@ -10,7 +10,9 @@ from app.api.surveys import surveys_bp
 from app.api.profile import profile_bp
 from app.models import User, Document, Appeal, Webinar, WebinarView,  MasterClass, Test, MasterClassProgress, Certificate, Survey, SurveyQuestion, SurveyResponse
 from app.api.admin import admin_bp
-
+from flask_cors import CORS
+from flask import send_from_directory
+import os
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -28,4 +30,22 @@ def create_app(config_class=Config):
     app.register_blueprint(surveys_bp, url_prefix='/api')
     app.register_blueprint(profile_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    
+      
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'certificates'), exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'documents'), exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'videos'), exist_ok=True)  # если нужно
+
+   
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
+    CORS(app)
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
     return app

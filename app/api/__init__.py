@@ -34,4 +34,6 @@ def create_app(config_class=Config):
     app.register_blueprint(profile_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
+    
+    
     return app
