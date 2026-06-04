@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import User, MasterClassProgress, Certificate, WebinarView
 from werkzeug.security import generate_password_hash
-from app.models import User
+from app.models import User, Certificateertificate, UserRole
 import os
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
@@ -26,11 +26,14 @@ def get_certificates():
 @profile_bp.route('/certificates/<int:id>/download', methods=['GET'])
 @jwt_required()
 def download_certificate(id):
-    user_id = int(get_jwt_identity())
+    current_user_id = int(get_jwt_identity())
     cert = Certificate.query.get_or_404(id)
-    if cert.user_id != user_id:
+    user = User.query.get(current_user_id)
+    is_admin = (user.role == UserRole.ADMIN)
+
+    if cert.user_id != current_user_id and not is_admin:
         return jsonify({'error': 'Access denied'}), 403
-    return send_file(cert.pdf_path, as_attachment=True)
+    return send_file(cert.pdf_path, as_attachment=True, download_name=f'certificate_{cert.unique_number}.pdf')
 
 @profile_bp.route('/profile/progress', methods=['GET'])
 @jwt_required()

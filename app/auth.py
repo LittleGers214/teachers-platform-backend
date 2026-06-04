@@ -89,3 +89,6 @@ def get_profile():
         'full_name': user.full_name,
         'role': user.role         
     })
+def is_admin(user_id):
+    user = User.query.get(user_id)
+    return user and user.role == UserRole.ADMIN

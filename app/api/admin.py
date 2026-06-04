@@ -427,3 +427,88 @@ def upload_questions(masterclass_id):
     db.session.add_all(new_tests)
     db.session.commit()
     return jsonify({'message': f'Added {len(new_tests)} tests', 'tests': tests_data}), 201
+
+# ========== Документы ==========
+@admin_bp.route('/documents/<int:doc_id>', methods=['PUT'])
+@admin_required
+def update_document(doc_id):
+    data = request.get_json()
+    doc = Document.query.get_or_404(doc_id)
+    doc.title = data.get('title', doc.title)
+    doc.description = data.get('description', doc.description)
+    doc.category = data.get('category', doc.category)
+    db.session.commit()
+    return jsonify({'id': doc.id, 'message': 'Updated'}), 200
+
+@admin_bp.route('/documents/<int:doc_id>', methods=['DELETE'])
+@admin_required
+def delete_document(doc_id):
+    doc = Document.query.get_or_404(doc_id)
+    # Если есть файл – удалить физически
+    if doc.file_path and os.path.exists(doc.file_path):
+        os.remove(doc.file_path)
+    db.session.delete(doc)
+    db.session.commit()
+    return jsonify({'message': 'Deleted'}), 200
+
+# ========== Вебинары ==========
+@admin_bp.route('/webinars/<int:webinar_id>', methods=['PUT'])
+@admin_required
+def update_webinar(webinar_id):
+    data = request.get_json()
+    webinar = Webinar.query.get_or_404(webinar_id)
+    webinar.title = data.get('title', webinar.title)
+    webinar.description = data.get('description', webinar.description)
+    webinar.topic = data.get('topic', webinar.topic)
+    webinar.video_url = data.get('video_url', webinar.video_url)
+    db.session.commit()
+    return jsonify({'id': webinar.id, 'message': 'Updated'}), 200
+
+@admin_bp.route('/webinars/<int:webinar_id>', methods=['DELETE'])
+@admin_required
+def delete_webinar(webinar_id):
+    webinar = Webinar.query.get_or_404(webinar_id)
+    db.session.delete(webinar)
+    db.session.commit()
+    return jsonify({'message': 'Deleted'}), 200
+
+# ========== Мастер-классы ==========
+@admin_bp.route('/masterclasses/<int:mc_id>', methods=['PUT'])
+@admin_required
+def update_masterclass(mc_id):
+    data = request.get_json()
+    mc = MasterClass.query.get_or_404(mc_id)
+    mc.title = data.get('title', mc.title)
+    mc.description = data.get('description', mc.description)
+    mc.passing_score = data.get('passing_score', mc.passing_score)
+    db.session.commit()
+    return jsonify({'id': mc.id, 'message': 'Updated'}), 200
+
+@admin_bp.route('/masterclasses/<int:mc_id>', methods=['DELETE'])
+@admin_required
+def delete_masterclass(mc_id):
+    mc = MasterClass.query.get_or_404(mc_id)
+    # Удаляем связанные тесты, прогресс, сертификаты – каскадно
+    db.session.delete(mc)
+    db.session.commit()
+    return jsonify({'message': 'Deleted'}), 200
+
+# ========== Опросы ==========
+@admin_bp.route('/surveys/<int:survey_id>', methods=['PUT'])
+@admin_required
+def update_survey(survey_id):
+    data = request.get_json()
+    survey = Survey.query.get_or_404(survey_id)
+    survey.title = data.get('title', survey.title)
+    survey.description = data.get('description', survey.description)
+    survey.is_active = data.get('is_active', survey.is_active)
+    db.session.commit()
+    return jsonify({'id': survey.id, 'message': 'Updated'}), 200
+
+@admin_bp.route('/surveys/<int:survey_id>', methods=['DELETE'])
+@admin_required
+def delete_survey(survey_id):
+    survey = Survey.query.get_or_404(survey_id)
+    db.session.delete(survey)
+    db.session.commit()
+    return jsonify({'message': 'Deleted'}), 200
