@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import User, MasterClassProgress, Certificate, WebinarView
 from werkzeug.security import generate_password_hash
-from app.models import User, Certificateertificate, UserRole
+from app.models import User, Certificate, UserRole
 import os
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename

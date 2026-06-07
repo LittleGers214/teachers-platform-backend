@@ -64,7 +64,7 @@ def create_document():
 
 @admin_bp.route('/documents/<int:id>', methods=['PUT'])
 @admin_required
-def update_document(id):
+def update_document_old(id):
     doc = Document.query.get_or_404(id)
     data = request.get_json()
     doc.title = data.get('title', doc.title)
@@ -76,7 +76,7 @@ def update_document(id):
 
 @admin_bp.route('/documents/<int:id>', methods=['DELETE'])
 @admin_required
-def delete_document(id):
+def delete_document_new(id):
     doc = Document.query.get_or_404(id)
     if doc.file_path and os.path.exists(doc.file_path):
         os.remove(doc.file_path)
@@ -100,44 +100,129 @@ def list_webinars_admin():
         'is_published': w.is_published,
     } for w in webinars])
 
+
 @admin_bp.route('/webinars', methods=['POST'])
 @admin_required
 def create_webinar():
-    data = request.get_json()
-    if not data.get('title'):
+    # Поддержка как JSON, так и form-data (для загрузки видео)
+    if request.is_json:
+        data = request.get_json()
+        title = data.get('title')
+        description = data.get('description', '')
+        video_url = data.get('video_url')
+        presentation_path = data.get('presentation_path')
+        materials = data.get('materials')
+        topic = data.get('topic')
+        is_published = data.get('is_published', True)
+        video_file = None
+    else:
+        title = request.form.get('title')
+        description = request.form.get('description', '')
+        video_url = request.form.get('video_url')  # может быть ссылка, если файл не загружен
+        presentation_path = request.form.get('presentation_path')
+        materials = request.form.get('materials')
+        topic = request.form.get('topic')
+        is_published = request.form.get('is_published', 'true').lower() == 'true'
+        video_file = request.files.get('video')
+
+    if not title:
         return jsonify({'error': 'Title required'}), 400
+
+    # Если передан видеофайл, сохраняем его
+    saved_video_path = None
+    if video_file and video_file.filename:
+        from werkzeug.utils import secure_filename
+        filename = secure_filename(video_file.filename)
+        video_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'videos')
+        os.makedirs(video_dir, exist_ok=True)
+        saved_video_path = os.path.join(video_dir, filename).replace('\\', '/')
+        video_file.save(saved_video_path)
+
+    # Если видео не загружено, используем переданный video_url (если есть)
+    final_video_url = saved_video_path or video_url
+
     webinar = Webinar(
-        title=data['title'],
-        description=data.get('description', ''),
-        video_url=data.get('video_url'),
-        presentation_path=data.get('presentation_path'),
-        materials=data.get('materials'),
-        topic=data.get('topic'),
-        is_published=data.get('is_published', True)
+        title=title,
+        description=description,
+        video_url=final_video_url,
+        presentation_path=presentation_path,
+        materials=materials,
+        topic=topic,
+        is_published=is_published
     )
     db.session.add(webinar)
     db.session.commit()
     return jsonify({'id': webinar.id}), 201
 
+
 @admin_bp.route('/webinars/<int:id>', methods=['PUT'])
 @admin_required
-def update_webinar(id):
+def update_webinar_new(id):
     webinar = Webinar.query.get_or_404(id)
-    data = request.get_json()
-    webinar.title = data.get('title', webinar.title)
-    webinar.description = data.get('description', webinar.description)
-    webinar.video_url = data.get('video_url', webinar.video_url)
-    webinar.presentation_path = data.get('presentation_path', webinar.presentation_path)
-    webinar.materials = data.get('materials', webinar.materials)
-    webinar.topic = data.get('topic', webinar.topic)
-    webinar.is_published = data.get('is_published', webinar.is_published)
+
+    # Поддержка как JSON, так и form-data (для обновления видео)
+    if request.is_json:
+        data = request.get_json()
+        title = data.get('title')
+        description = data.get('description')
+        video_url = data.get('video_url')
+        presentation_path = data.get('presentation_path')
+        materials = data.get('materials')
+        topic = data.get('topic')
+        is_published = data.get('is_published')
+        video_file = None
+    else:
+        title = request.form.get('title')
+        description = request.form.get('description')
+        video_url = request.form.get('video_url')
+        presentation_path = request.form.get('presentation_path')
+        materials = request.form.get('materials')
+        topic = request.form.get('topic')
+        is_published = request.form.get('is_published')
+        video_file = request.files.get('video')
+
+    if title is not None:
+        webinar.title = title
+    if description is not None:
+        webinar.description = description
+    if presentation_path is not None:
+        webinar.presentation_path = presentation_path
+    if materials is not None:
+        webinar.materials = materials
+    if topic is not None:
+        webinar.topic = topic
+    if is_published is not None:
+        webinar.is_published = is_published
+
+    # Обработка видео: если загружен новый файл, заменяем старый
+    if video_file and video_file.filename:
+        from werkzeug.utils import secure_filename
+        # Удаляем старый файл, если он существует и является локальным путём
+        old_path = webinar.video_url
+        if old_path and os.path.exists(old_path):
+            os.remove(old_path)
+        # Сохраняем новый
+        filename = secure_filename(video_file.filename)
+        video_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'videos')
+        os.makedirs(video_dir, exist_ok=True)
+        new_path = os.path.join(video_dir, filename).replace('\\', '/')
+        video_file.save(new_path)
+        webinar.video_url = new_path
+    elif video_url is not None:
+        # Если передан URL (строка) и нет файла, просто обновляем ссылку
+        webinar.video_url = video_url
+
     db.session.commit()
     return jsonify({'message': 'Webinar updated'})
 
+
 @admin_bp.route('/webinars/<int:id>', methods=['DELETE'])
 @admin_required
-def delete_webinar(id):
+def delete_webinar_old(id):
     webinar = Webinar.query.get_or_404(id)
+    # Удаляем связанный видеофайл, если он локальный
+    if webinar.video_url and os.path.exists(webinar.video_url):
+        os.remove(webinar.video_url)
     db.session.delete(webinar)
     db.session.commit()
     return jsonify({'message': 'Deleted'})
@@ -177,7 +262,7 @@ def create_masterclass():
 
 @admin_bp.route('/masterclasses/<int:id>', methods=['PUT'])
 @admin_required
-def update_masterclass(id):
+def update_masterclass_new(id):
     mc = MasterClass.query.get_or_404(id)
     data = request.get_json()
     mc.title = data.get('title', mc.title)
@@ -191,7 +276,7 @@ def update_masterclass(id):
 
 @admin_bp.route('/masterclasses/<int:id>', methods=['DELETE'])
 @admin_required
-def delete_masterclass(id):
+def delete_masterclass_new(id):
     mc = MasterClass.query.get_or_404(id)
     db.session.delete(mc)
     db.session.commit()
@@ -265,7 +350,7 @@ def create_survey():
 
 @admin_bp.route('/surveys/<int:id>', methods=['PUT'])
 @admin_required
-def update_survey(id):
+def update_survey_idk(id):
     survey = Survey.query.get_or_404(id)
     data = request.get_json()
     survey.title = data.get('title', survey.title)
@@ -278,7 +363,7 @@ def update_survey(id):
 
 @admin_bp.route('/surveys/<int:id>', methods=['DELETE'])
 @admin_required
-def delete_survey(id):
+def delete_survey_new(id):
     survey = Survey.query.get_or_404(id)
     db.session.delete(survey)
     db.session.commit()
@@ -431,7 +516,7 @@ def upload_questions(masterclass_id):
 # ========== Документы ==========
 @admin_bp.route('/documents/<int:doc_id>', methods=['PUT'])
 @admin_required
-def update_document(doc_id):
+def update_document_new(doc_id):
     data = request.get_json()
     doc = Document.query.get_or_404(doc_id)
     doc.title = data.get('title', doc.title)
