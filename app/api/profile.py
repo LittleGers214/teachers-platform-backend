@@ -8,6 +8,7 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.extensions import db
 
+
 profile_bp = Blueprint('profile', __name__)
 
 @profile_bp.route('/profile/certificates', methods=['GET'])
@@ -69,23 +70,34 @@ def update_profile():
     db.session.commit()
     return jsonify({'message': 'Profile updated'})
 
-# Загрузка аватарки для текущего пользователя
 @profile_bp.route('/avatar', methods=['POST'])
 @jwt_required()
 def upload_avatar():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-    filename = secure_filename(f"{get_jwt_identity()}_{file.filename}")
-    upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
-    os.makedirs(upload_dir, exist_ok=True)
-    filepath = os.path.join(upload_dir, filename)
-    file.save(filepath)
-    avatar_url = f"/uploads/avatars/{filename}"
     user_id = int(get_jwt_identity())
-    user = db.session.get(User, user_id)
-    user.avatar_url = avatar_url
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    # проверка типа (png, jpeg)
+    allowed = {'png', 'jpg', 'jpeg', 'gif'}
+    if not file.filename.lower().split('.')[-1] in allowed:
+        return jsonify({'error': 'File type not allowed'}), 400
+    filename = secure_filename(f"avatar_{user_id}_{file.filename}")
+    avatar_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
+    os.makedirs(avatar_dir, exist_ok=True)
+    filepath = os.path.join(avatar_dir, filename)
+    file.save(filepath)
+    user = User.query.get(user_id)
+    user.avatar_path = filepath
     db.session.commit()
-    return jsonify({'avatar_url': avatar_url}), 200
+    return jsonify({'avatar_url': f'/api/profile/avatar/{filename}'}), 200
+
+@profile_bp.route('/avatar/<filename>', methods=['GET'])
+def get_avatar(filename):
+    """Отдача аватарки по имени файла"""
+    avatar_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
+    safe_path = os.path.join(avatar_dir, os.path.basename(filename))
+    if not os.path.exists(safe_path):
+        return jsonify({'error': 'Avatar not found'}), 404
+    return send_file(safe_path, mimetype='image/jpeg')

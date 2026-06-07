@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models import User, UserRole, Document, Webinar, MasterClass, Test, Survey, SurveyQuestion
 from docx import Document
 from app.utils.parser import parse_question_file
+from app.models import Document as DocumentModel
 
 admin_bp = Blueprint('admin', __name__)  # без url_prefix
 
@@ -597,3 +598,47 @@ def delete_survey(survey_id):
     db.session.delete(survey)
     db.session.commit()
     return jsonify({'message': 'Deleted'}), 200
+# ========== Управление вопросами (тестами) мастер-классов ==========
+@admin_bp.route('/masterclasses/<int:mc_id>/tests', methods=['GET'])
+@admin_required
+def get_tests_ifk(mc_id):
+    """Список всех вопросов мастер-класса"""
+    tests = Test.query.filter_by(masterclass_id=mc_id).all()
+    return jsonify([{
+        'id': t.id,
+        'question_text': t.question_text,
+        'options': t.options,
+        'explanation': t.explanation
+    } for t in tests])
+
+@admin_bp.route('/tests/<int:test_id>', methods=['GET'])
+@admin_required
+def get_test(test_id):
+    """Получить один вопрос"""
+    test = Test.query.get_or_404(test_id)
+    return jsonify({
+        'id': test.id,
+        'question_text': test.question_text,
+        'options': test.options,
+        'explanation': test.explanation,
+        'masterclass_id': test.masterclass_id
+    })
+
+@admin_bp.route('/tests/<int:test_id>', methods=['PUT'])
+@admin_required
+def update_test_for(test_id):
+    data = request.get_json()
+    test = Test.query.get_or_404(test_id)
+    test.question_text = data.get('question_text', test.question_text)
+    test.options = data.get('options', test.options)
+    test.explanation = data.get('explanation', test.explanation)
+    db.session.commit()
+    return jsonify({'message': 'Test updated'}), 200
+
+@admin_bp.route('/tests/<int:test_id>', methods=['DELETE'])
+@admin_required
+def delete_test_idk(test_id):
+    test = Test.query.get_or_404(test_id)
+    db.session.delete(test)
+    db.session.commit()
+    return jsonify({'message': 'Test deleted'}), 200

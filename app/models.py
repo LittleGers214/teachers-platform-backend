@@ -25,6 +25,7 @@ class User(db.Model):
     webinar_views = db.relationship('WebinarView', backref='user', lazy=True)
     is_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(100), unique=True, nullable=True)
+    avatar_path = db.Column(db.String(300), nullable=True)
 
 class Document(db.Model):
     __tablename__ = 'documents'
