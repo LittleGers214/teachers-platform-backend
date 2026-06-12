@@ -26,6 +26,7 @@ class User(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(100), unique=True, nullable=True)
     avatar_path = db.Column(db.String(300), nullable=True)
+    avatar_url = db.Column(db.String(200), nullable=True)
 
 class Document(db.Model):
     __tablename__ = 'documents'
@@ -62,12 +63,13 @@ class Webinar(db.Model):
     topic = db.Column(db.String(100))          # цифровая компетентность, ИИ и т.д.
     is_published = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    views = db.relationship('WebinarView', backref='webinar', cascade='all, delete-orphan')
 
 class WebinarView(db.Model):
     __tablename__ = 'webinar_views'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    webinar_id = db.Column(db.Integer, db.ForeignKey('webinars.id'), nullable=False)
+    webinar_id = db.Column(db.Integer, db.ForeignKey('webinars.id', ondelete='CASCADE'))
     viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
     # для отметки "пройдено" достаточно факта просмотра
 
@@ -87,7 +89,7 @@ class MasterClass(db.Model):
 class Test(db.Model):
     __tablename__ = 'tests'
     id = db.Column(db.Integer, primary_key=True)
-    masterclass_id = db.Column(db.Integer, db.ForeignKey('masterclasses.id'), nullable=False)
+    masterclass_id = db.Column(db.Integer, db.ForeignKey('masterclasses.id', ondelete='CASCADE'))
     question_text = db.Column(db.Text, nullable=False)
     # варианты ответов в виде JSON: [{"text": "...", "is_correct": false}, ...]
     options = db.Column(db.JSON, nullable=False)

@@ -66,7 +66,7 @@ def update_profile():
         user.full_name = data['full_name']
     if 'password' in data and data['password']:
         user.password_hash = generate_password_hash(data['password'])
-    # avatar_url можно обновить отдельным эндпоинтом загрузки файла
+    # или полный URL # avatar_url можно обновить отдельным эндпоинтом загрузки файла
     db.session.commit()
     return jsonify({'message': 'Profile updated'})
 
@@ -74,30 +74,35 @@ def update_profile():
 @jwt_required()
 def upload_avatar():
     user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
     if 'avatar' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     file = request.files['avatar']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
-    # проверка типа (png, jpeg)
-    allowed = {'png', 'jpg', 'jpeg', 'gif'}
-    if not file.filename.lower().split('.')[-1] in allowed:
-        return jsonify({'error': 'File type not allowed'}), 400
-    filename = secure_filename(f"avatar_{user_id}_{file.filename}")
+
+    # Создаём папку для аватаров
     avatar_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
     os.makedirs(avatar_dir, exist_ok=True)
+
+    # Сохраняем файл
+    filename = secure_filename(f"user_{user_id}_{file.filename}")
     filepath = os.path.join(avatar_dir, filename)
     file.save(filepath)
-    user = User.query.get(user_id)
-    user.avatar_path = filepath
-    db.session.commit()
-    return jsonify({'avatar_url': f'/api/profile/avatar/{filename}'}), 200
 
-@profile_bp.route('/avatar/<filename>', methods=['GET'])
-def get_avatar(filename):
-    """Отдача аватарки по имени файла"""
-    avatar_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
-    safe_path = os.path.join(avatar_dir, os.path.basename(filename))
-    if not os.path.exists(safe_path):
+    # Удаляем старый аватар, если был
+    if user.avatar and os.path.exists(user.avatar):
+        os.remove(user.avatar)
+
+    user.avatar = filepath
+    db.session.commit()
+    return jsonify({'message': 'Avatar uploaded', 'path': filepath}), 200
+
+@profile_bp.route('/avatar', methods=['GET'])
+@jwt_required()
+def get_avatar():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    if not user.avatar or not os.path.exists(user.avatar):
         return jsonify({'error': 'Avatar not found'}), 404
-    return send_file(safe_path, mimetype='image/jpeg')
+    return send_file(user.avatar)
